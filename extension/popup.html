@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YouTube Lookahead Subtitles</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 360px;
+        background: #0f1117;
+        color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .wrap { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+      .header { display: flex; align-items: center; justify-content: space-between; }
+      .title { font-size: 14px; font-weight: 700; color: #fff; margin: 0; }
+      .pill {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.16);
+        color: #cbd5e1;
+      }
+      .pill.ok { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
+      .pill.warn { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+      .pill.err { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
+      .card {
+        background: #171b24;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .muted { color: #9ca3af; font-size: 12px; margin: 0; }
+      .siwc-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: #000000;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .siwc-btn:hover { background: #141414; }
+      .btn-secondary {
+        padding: 7px 11px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+        color: #e5e7eb;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+      }
+      .btn-primary {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: none;
+        background: #10b981;
+        color: #052e16;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+      }
+      .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .plan-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: rgba(59, 130, 246, 0.12);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        font-size: 12px;
+      }
+      .plan-bar strong { color: #93c5fd; display: inline-flex; align-items: center; gap: 6px; }
+      .link { color: #6ee7b7; text-decoration: none; font-weight: 600; font-size: 12px; }
+      .link:hover { text-decoration: underline; }
+      select {
+        width: 100%;
+        padding: 7px 8px;
+        border-radius: 8px;
+        background: #0f131c;
+        color: #f3f4f6;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        font-size: 12px;
+      }
+      label { font-size: 11px; color: #9ca3af; font-weight: 600; }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.72);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .modal-backdrop.open { display: flex; }
+      .modal {
+        background: #181d27;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .modal h2 { margin: 0; font-size: 15px; color: #fff; }
+      [hidden] { display: none !important; }
+      .section-title { margin: 0; color: #f8fafc; font-size: 13px; font-weight: 650; }
+      .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+      .metrics > div { padding: 7px 9px; border-radius: 8px; background: rgba(148,163,184,0.07); }
+      .metrics dt { font-size: 11px; color: #aab3c2; }
+      .metrics dd { margin: 2px 0 0; font-weight: 650; font-size: 17px; font-variant-numeric: tabular-nums; }
+      .token-total { font-size: 21px; font-variant-numeric: tabular-nums; color: #a7f3d0; }
+      input { min-width: 0; width: 100%; padding: 7px 8px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: #0f131c; color: #f3f4f6; }
+      .language-custom { display: flex; flex-direction: column; gap: 5px; }
+      .feedback { margin: 0; font-size: 12px; color: #6ee7b7; }
+      .feedback.error { color: #fca5a5; }
+      select:focus-visible, button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid #6ee7b7; outline-offset: 3px; }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: #9ca3af;
+        padding-top: 4px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="header">
+        <h1 class="title">유튜브 번역 자막</h1>
+        <span id="companionPill" class="pill">연결 확인 중</span>
+      </div>
+
+      <section id="videoCard" class="card" aria-labelledby="videoHeading">
+        <div class="row"><h2 id="videoHeading" class="section-title">현재 영상</h2><span id="playbackState" class="muted">확인 중</span></div>
+        <p id="videoHint" class="muted">YouTube 시청 탭을 확인하고 있습니다.</p>
+        <div id="videoMetrics" hidden>
+          <dl class="metrics">
+            <div><dt>재생 준비</dt><dd id="nativeAhead">—</dd></div>
+            <div><dt id="subtitleReadyLabel">번역 자막 준비</dt><dd id="subtitleAhead">—</dd></div>
+          </dl>
+          <p id="preparationDetail" class="muted"></p>
+        </div>
+        <label for="targetLanguage">보고 싶은 자막 언어</label>
+        <select id="targetLanguage" aria-describedby="languageHint"></select>
+        <form id="customLanguageForm" class="language-custom" hidden>
+          <label for="customLanguage">다른 언어 코드</label>
+          <div class="row">
+            <input id="customLanguage" type="text" maxlength="20" placeholder="예: sw, sr-Latn" aria-describedby="languageHint" autocomplete="off" spellcheck="false">
+            <button class="btn-secondary" type="submit">적용</button>
+          </div>
+        </form>
+        <p id="languageHint" class="muted">원본 자막이 있으면 그 대사를 선택한 언어로 번역합니다.</p>
+        <label for="lookAheadMode">자막 미리 준비</label>
+        <select id="lookAheadMode">
+          <option value="balanced">기본 · 약 12초 앞서</option>
+          <option value="extended">더 많이 · 약 24초 앞서</option>
+        </select>
+        <p id="lookAheadHint" class="muted">1배속 기준 목표입니다. 실제 준비 길이는 처리 속도에 따라 달라집니다.</p>
+        <p id="preferenceStatus" class="feedback" role="status" hidden></p>
+      </section>
+
+      <section id="tokenCard" class="card" aria-labelledby="tokenHeading">
+        <div class="row"><h2 id="tokenHeading" class="section-title">이 영상의 GPT 토큰</h2><strong id="tokenTotal" class="token-total">—</strong></div>
+        <dl id="tokenBreakdown" class="metrics" hidden>
+          <div><dt>입력</dt><dd id="tokenInput">—</dd></div>
+          <div><dt>출력</dt><dd id="tokenOutput">—</dd></div>
+        </dl>
+        <p id="tokenCached" class="muted" hidden></p>
+        <p id="tokenNote" class="muted">YouTube 시청 탭을 열어 주세요.</p>
+      </section>
+
+      <div id="errorCard" class="card" style="display: none; border-color: rgba(239,68,68,0.45);">
+        <div class="row">
+          <strong id="errorTitle" style="color:#fca5a5;">사용 한도에 도달했습니다</strong>
+        </div>
+        <p id="errorDesc" class="muted"></p>
+        <a id="errorManageLink" class="btn-primary" href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer">
+          사용량 관리
+        </a>
+      </div>
+
+      <form id="pairCard" class="card" style="display:none">
+        <label for="pairCode">이 컴퓨터 연결</label>
+        <p class="muted">보조 앱 실행 창에 표시된 연결 코드를 한 번 입력하세요.</p>
+        <input id="pairCode" type="password" autocomplete="off" required aria-label="연결 코드">
+        <button class="btn-primary" type="submit">연결</button>
+      </form>
+      <div id="signedOutCard" class="card" style="display: none;">
+        <strong style="font-size:13px;">ChatGPT 구독 연결</strong>
+        <p class="muted">
+          영상에서 번역 자막을 켜면 자막 문장과 앞뒤 대사를 OpenAI에 보내 번역하며, 연결한 계정의 사용량을 씁니다. 원본 자막이 없으면 이 컴퓨터에서 탭 오디오를 받아씁니다. <a class="link" href="https://github.com/ParkerHwang/yt-lookahead-subtitles/blob/main/PRIVACY.md" target="_blank" rel="noreferrer">개인정보 처리방침</a>
+        </p>
+        <button id="continueBtn" class="siwc-btn" type="button" data-oai-siwc-button>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M22.28 9.82a5.98 5.98 0 0 0-.51-4.91 6.05 6.05 0 0 0-6.51-2.9A6.06 6.06 0 0 0 4.98 4.18a5.98 5.98 0 0 0-4 2.9 6.05 6.05 0 0 0 .74 7.09 5.98 5.98 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.51 2.9 5.98 5.98 0 0 0 4.5 2.02 6.06 6.06 0 0 0 5.77-4.21 5.99 5.99 0 0 0 4-2.9 6.06 6.06 0 0 0-.73-7.07zM13.26 22.43a4.48 4.48 0 0 1-2.88-1.04l.14-.08 4.78-2.76a.79.79 0 0 0 .4-.68v-6.74l2.02 1.17a.07.07 0 0 1 .04.06v5.58a4.5 4.5 0 0 1-4.5 4.49zM3.6 18.3a4.47 4.47 0 0 1-.54-3.01l.14.08 4.78 2.76a.77.77 0 0 0 .78 0l5.84-3.37v2.33a.08.08 0 0 1-.03.06L9.74 19.95a4.5 4.5 0 0 1-6.14-1.65zM2.34 7.9a4.49 4.49 0 0 1 2.37-1.97V11.6a.77.77 0 0 0 .39.68l5.81 3.35-2.02 1.17a.08.08 0 0 1-.07 0l-4.83-2.79A4.5 4.5 0 0 1 2.34 7.9zm16.6 3.85l-5.84-3.38 2.02-1.16a.08.08 0 0 1 .07 0l4.83 2.79a4.5 4.5 0 0 1-.68 8.11v-5.67a.79.79 0 0 0-.4-.69zm2.01-3.02l-.14-.09-4.77-2.78a.78.78 0 0 0-.78 0L9.41 9.23V6.9a.07.07 0 0 1 .03-.06l4.83-2.79a4.5 4.5 0 0 1 6.68 4.66zM8.31 12.86l-2.02-1.16a.08.08 0 0 1-.04-.06V6.07a4.5 4.5 0 0 1 7.38-3.45l-.14.08-4.78 2.76a.79.79 0 0 0-.4.68zm1.1-2.36l2.6-1.5 2.6 1.5v3l-2.6 1.5-2.6-1.5z"/>
+          </svg>
+          <span id="continueBtnLabel">Continue with ChatGPT</span>
+        </button>
+      </div>
+
+      <button id="newFromSignedOut" class="btn-secondary" type="button" hidden>다른 ChatGPT 계정으로 연결</button>
+      <div id="signedInCard" class="card" style="display: none;">
+        <div class="row">
+          <div style="overflow:hidden; text-overflow:ellipsis;">
+            <div id="accountEmail" style="font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+            <div id="accountMeta" class="muted"></div>
+          </div>
+          <button id="signOutBtn" class="btn-secondary" type="button">이 계정 로그아웃</button>
+        </div>
+
+        <div id="planActiveBar" class="plan-bar" style="display: none;">
+          <strong>구독으로 번역 중</strong>
+          <a class="link" href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer">사용량 관리</a>
+        </div>
+
+        <div id="planMissingBar" style="display: none;" class="card">
+          <p class="muted" style="color:#fcd34d;">
+            로그인한 계정의 구독 사용을 허용하면 자막을 번역할 수 있습니다.
+          </p>
+          <button id="enablePlanBtn" class="btn-primary" type="button">구독 사용 허용</button>
+        </div>
+
+        <div id="modelPickerWrap" style="display: none;">
+          <label for="modelSelect">번역 모델</label>
+          <select id="modelSelect"></select>
+        </div>
+
+        <div id="accountSwitchWrap" style="display: none;">
+          <label for="accountSelect">번역에 사용할 ChatGPT 계정</label>
+          <div class="row" style="margin-top:4px;">
+            <select id="accountSelect"></select>
+            <button id="addAccountBtn" class="btn-secondary" type="button" style="white-space:nowrap;">+ 다른 계정 추가</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="offlineCard" class="card" style="display: none;">
+        <strong style="color:#fca5a5;">보조 앱을 실행해 주세요</strong>
+        <p class="muted">
+          이 폴더의 <strong>자막 시작.command</strong>를 실행한 다음 새로고침을 눌러 주세요.
+        </p>
+        <button id="retryBtn" class="btn-secondary" type="button">다시 연결</button>
+      </div>
+
+      <div class="footer">
+        <span id="asrStatus">받아쓰기 확인 중</span>
+        <button id="refreshBtn" class="btn-secondary" type="button" style="padding:3px 8px; font-size:11px;">새로고침</button>
+      </div>
+    </div>
+
+    <div id="welcomeModal" class="modal-backdrop">
+      <div class="modal">
+        <h2>ChatGPT 구독이 연결됐습니다</h2>
+        <p class="muted">
+          이 앱의 자막 번역에 연결한 구독의 사용량을 사용합니다. ChatGPT 설정에서 이 앱의 한도를 관리할 수 있습니다.
+        </p>
+        <button id="gotItBtn" class="btn-primary" type="button">확인</button>
+      </div>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

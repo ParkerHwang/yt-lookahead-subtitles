@@ -1,0 +1,73 @@
+{
+  "manifest_version": 3,
+  "name": "Lookahead Subtitles for YouTube",
+  "version": "0.1.0",
+  "description": "Translate YouTube captions or locally recognized speech into your chosen language. Requires a local companion and ChatGPT access.",
+  "permissions": [
+    "tabCapture",
+    "offscreen",
+    "activeTab",
+    "storage",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Lookahead Subtitles for YouTube",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "page-probe.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "subtitle-languages.js",
+        "queue-engine.js",
+        "language-tracker.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "audio-worklet.js"
+      ],
+      "matches": [
+        "https://www.youtube.com/*"
+      ]
+    }
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2mNvNV+J+KrzTuNR9Fjx7s3chNwxn5Jmg8saGx3kZz/3EPqcCzeGo34vpeNWghlG6WZ/PBS94e4bhFIpFBDNNms7/8yv7xop+TQi/pSIDF5FXBfbV+kQoYnB7HFY3/TYyPJkacwmiuFSxu1ACeHL9JdhrDoIZNIFYu0vkvN3cali3UgGlW7dkjDPx6HZg7LDAZlXAcywS1fxCrq4nZ2khjhb3fqirZaZNh97tNHzzczMvLwkAASHBREQOCxv29AYkBC7LZyeaCc8JhMdmnncq8g5xdUUl+riy/RQWWB26Gz6OiG5NnHienfREF7nzln1THNcIJ+bfLAaPfy0D7tegQIDAQAB",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

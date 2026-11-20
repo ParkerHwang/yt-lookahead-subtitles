@@ -1,0 +1,8 @@
+{
+  "iconArt": "Original programmatic subtitle bubble and look-ahead arrow",
+  "screenshot": "Actual popup markup rendered with explicitly labeled sample values and original local demonstration artwork",
+  "officialImageRequirements": "https://developer.chrome.com/docs/webstore/images",
+  "package": "lookahead-subtitles-0.1.0.zip",
+  "sourceDevelopmentKeyPreserved": true,
+  "archiveDevelopmentKeyIncluded": false
+}

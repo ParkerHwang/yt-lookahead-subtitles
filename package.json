@@ -1,0 +1,18 @@
+{
+  "name": "yt-lookahead-subtitles",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome extension + local companion for look-ahead translated YouTube subtitles using on-device Whisper ASR and Sign in with ChatGPT.",
+  "scripts": {
+    "start": "bash scripts/start-companion.sh",
+    "setup:asr": "bash scripts/setup-asr.sh",
+    "test": "node --test companion/test/*.test.mjs scripts/*.test.mjs",
+    "test:e2e": "node scripts/run-e2e-test.mjs"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ParkerHwang/yt-lookahead-subtitles.git"
+  }
+}

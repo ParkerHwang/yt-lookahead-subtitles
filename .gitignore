@@ -1,0 +1,16 @@
+models/*.bin
+models/*.tmp
+.DS_Store
+node_modules/
+tmp/
+work/
+outputs/
+*.log
+*.zip
+.env
+.env.*
+credentials.json
+host.json
+pairing.json
+*.pem
+*.key
